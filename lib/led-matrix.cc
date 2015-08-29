@@ -159,9 +159,7 @@ FrameCanvas *RGBMatrix::CreateFrameCanvas() {
 }
 
 FrameCanvas *RGBMatrix::SwapOnVSync(FrameCanvas *other) {
-  FrameCanvas *const previous = updater_->SwapOnVSync(other);
-  if (other) active_ = other;
-  return previous;
+  return updater_->SwapOnVSync(other);
 }
 
 void RGBMatrix::SetTransformer(CanvasTransformer *transformer) {

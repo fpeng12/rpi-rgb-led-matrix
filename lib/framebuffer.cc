@@ -42,7 +42,7 @@ static const long kBaseTimeNanos = 130;
 static PinPulser *sOutputEnablePulser = NULL;
 
 // The Adafruit HAT only supports one chain.
-#if defined(ADAFRUIT_RGBMATRIX_HAT) || defined(ADAFRUIT_RGBMATRIX_HAT_PWM)
+#if defined(ADAFRUIT_RGBMATRIX_HAT)
 #  define ONLY_SINGLE_CHAIN 1
 #endif
 
@@ -162,7 +162,7 @@ inline uint16_t Framebuffer::MapColor(uint8_t c) {
 
   if (do_luminance_correct_) {
     static uint16_t *luminance_lookup = CreateLuminanceCIE1931LookupTable();
-    return COLOR_OUT_BITS(luminance_lookup[c * 100 + (brightness_ - 1)]);
+    return COLOR_OUT_BITS(luminance_lookup[c * 100 + brightness_ - 1]);
   } else {
     // simple scale down the color value
     c = c * brightness_ / 100;

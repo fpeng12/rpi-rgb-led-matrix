@@ -47,7 +47,7 @@ public:
   // Returns how much we advance on the screen, which is the width of the
   // character or 0 if we didn't draw any chracter.
   int DrawGlyph(Canvas *c, int x, int y, const Color &color,
-                uint32_t unicode_codepoint) const;
+                uint32_t unicode_codepoint, int x_shift = 0, int y_shift = 0) const;
 private:
   struct Glyph;
   typedef std::map<uint32_t, Glyph*> CodepointGlyphMap;
@@ -62,9 +62,10 @@ private:
 // -- Some utility functions.
 
 // Draw text, encoded in UTF-8, with given "font" at "x","y" with "color".
+// Text may be shifted in x or y direction by x_shift/y_shift
 // Returns how far we advance on the screen.
 int DrawText(Canvas *c, const Font &font, int x, int y, const Color &color,
-             const char *utf8_text);
+             const char *utf8_text, const int x_shift = 0, int y_shift = 0);
 
 // Draw a circle centered at "x", "y", with a radius of "radius" and with "color"
 void DrawCircle(Canvas *c, int xx, int y, int radius, const Color &color);
