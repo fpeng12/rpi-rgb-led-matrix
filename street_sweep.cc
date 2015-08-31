@@ -6,7 +6,9 @@
 
 #include "led-matrix.h"
 #include "graphics.h"
+#include "lib/utf8-internal.h"
 
+#include <iostream>
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,6 +36,17 @@ static int usage(const char *progname) {
           "\t-C <r,g,b>    : Color. Default 255,255,0\n");
   return 1;
 }
+
+
+static int getTotalLength(const char *line, const Font &font) {
+  int length = 0;
+  while (*line) {
+    const uint32_t cp = utf8_next_codepoint(line);
+    length += font.CharacterWidth(cp);
+  }
+  return length;
+}
+
 
 static bool parseColor(Color *c, const char *str) {
   return sscanf(str, "%hhu,%hhu,%hhu", &c->r, &c->g, &c->b) == 3;
@@ -122,28 +135,29 @@ int main(int argc, char *argv[]) {
   const int usable_x = 32 - x;
   int y = y_orig;
 
-  if (isatty(STDIN_FILENO)) {
+  /*  if (isatty(STDIN_FILENO)) {
     // Only give a message if we are interactive. If connected via pipe, be quiet
     printf("Enter lines. Full screen or empty line clears screen.\n"
            "Supports UTF-8. CTRL-D for exit.\n");
   }
-
+  */
   if ((y + font.height() > canvas->height())) {
     canvas->Clear();
     y = y_orig;
   }
 
   while (1) {
-    char line[1024] = "Yooo! No street sweeping this week!!";
-    if (wkday == 1) {
-      line = "Take the trash out!";
-    }
-    
+    char line[1024] = "Yooo! No street sweep!!";
+
     time_t t = time(0);
     struct tm * now = localtime(&t);
 
+    int wkday = now->tm_wday; // day of week 0--6, 0==Sunday
+    if (wkday == 1) {
+      strcpy(line, "It's Monday, take the trash out!");
+    }
+    
     int day = now->tm_mday; // day in month 1--31
-    int wkday = no+w->tm_wday; // day of week 0--6, 0==Sunday
     int hr = now->tm_hour;
     bool sweep_wed = false, sweep_thur = false;
     if (day-wkday>=19 && day-wkday<=25) { // Wed falls in this week
@@ -156,38 +170,42 @@ int main(int argc, char *argv[]) {
       }
     }
     if (sweep_wed || sweep_thur) {
+      if (day==1) {
+        strcpy(line, "Street sweep this week, get ready! And take the trash out.");
+      }
+      if (day==2) {
+        strcpy(line, "Street sweep this week, get ready!");
+      }
       if (sweep_thur) {
         if ((day==3 && hr>=15) || (day==4 && hr<=15)) {
-          line = "Move your car to the other side of the street RIGHT NOW!!" // before 2:30pm
+          strcpy(line, "Move your car to the other side of the street RIGHT NOW!!"); // before 2:30pm
         }
-      } else {
+      } else { // wed
         if (day==2) {
-          line = "Street sweep tomorrow, move your car to our side of the street!!"
+          strcpy(line, "Street sweep tomorrow, move your car to our side of the street!!");
         }
         if (day==3 && hr<=15) {
-          line = "Move your car to our side of the street RIGHT NOW!!" // before 2:30pm
+          strcpy(line, "Move your car to our side of the street RIGHT NOW!!"); // before 2:30pm
         }
-      }
-      if (day==1) {
-        line = "Street sweep this week, get ready! And take the trash out."
       }
     }
 
     int ct = 0;
-    int refresh_int = 0.3;
-    int length = 0;
-    for (int i = 0; i < strlen(line); i++) {
-      const uint32_t cp = utf8_next_codepoint(line[i]);
-      length += font.CharacterWidth(cp);
-    } 
+    const unsigned int refresh_int = 500000; // microseconds
+    const unsigned int roll_int = 50000;
+    int length = getTotalLength(line, font);
+    //    std::cerr << "Length of line " << line << " is " << length;
     while (ct < 60 * 5) { // switch every 5 mins
-      int shift = 0;
-      while (shift + usable_x < length) {
+      int shift = usable_x-1;
+      while (usable_x - shift < length + usable_x) {
         rgb_matrix::DrawText(canvas, font, x, y + font.baseline(), color, line, shift);
+        shift--;
+        usleep(roll_int);
+        canvas->Clear();
+        ct += roll_int;
       //   y += font.height();
       }
-      sleep(refresh_int);
-      ct += refresh_int;
+      //      ct += refresh_int;
     }
   }
 

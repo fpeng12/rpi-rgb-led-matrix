@@ -1,5 +1,5 @@
 CXXFLAGS=-Wall -O3 -g
-OBJECTS=demo-main.o minimal-example.o text-example.o led-image-viewer.o street_sweep.o
+OBJECTS=demo-main.o minimal-example.o text-example.o street_sweep.o led-image-viewer.o 
 BINARIES=led-matrix minimal-example text-example street_sweep
 ALL_BINARIES=$(BINARIES) led-image-viewer
 
@@ -25,14 +25,14 @@ $(RGB_LIBRARY):
 led-matrix : demo-main.o $(RGB_LIBRARY)
 	$(CXX) $(CXXFLAGS) demo-main.o -o $@ $(LDFLAGS)
 
-stree_sweep: street_sweep.o ${RGB_LIBRARY}
-	$(CXX) $(CXXFLAGS) street_sweep.o -o $@ $(LDFLAGS)
-
 minimal-example : minimal-example.o $(RGB_LIBRARY)
 	$(CXX) $(CXXFLAGS) minimal-example.o -o $@ $(LDFLAGS)
 
 text-example : text-example.o $(RGB_LIBRARY)
 	$(CXX) $(CXXFLAGS) text-example.o -o $@ $(LDFLAGS)
+
+street_sweep : street_sweep.o ${RGB_LIBRARY}
+	$(CXX) $(CXXFLAGS) street_sweep.o -o $@ $(LDFLAGS)
 
 led-image-viewer: led-image-viewer.o $(RGB_LIBRARY)
 	$(CXX) $(CXXFLAGS) led-image-viewer.o -o $@ $(LDFLAGS) $(MAGICK_LDFLAGS)
